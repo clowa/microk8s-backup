@@ -6,6 +6,7 @@ import tar from "tar";
 import { execSync } from "child_process";
 import { uploadMultiPartFromStream } from "./lib/upload_multipart_from_stream";
 import { Cleanup } from "./lib/cleanup";
+import { log, logLevel } from "./lib/logger";
 
 function GetMissingEnvVars(envs: string[]): string[] {
   const missing = [];
@@ -135,12 +136,11 @@ async function UploadFile(client: S3Client, config: CreateMultipartUploadCommand
 
 async function main() {
   process.on("SIGINT", async () => {
-    console.log("Caught interrupt signal ...");
+    log({ level: logLevel.Info, msg: "Caught interrupt signal ..." });
     await Cleanup(dataToClean);
     process.exit(1);
   });
-
-  console.log("Loading config from environment variables ...");
+  log({ level: logLevel.Info, msg: "Loading config from environment variables ..." });
 
   const requiredEnvVars = ["AWS_REGION", "KINE_ENDPOINT", "BUCKET", "KEY"];
 
@@ -155,24 +155,24 @@ async function main() {
   const AWS_REGION = process.env.AWS_REGION;
   const BUCKET = process.env.BUCKET;
   const KEY = GetS3Key();
-  console.log(`Backup wil be stored at ${BUCKET}/${KEY} in ${AWS_REGION}`);
+  log({ level: logLevel.Info, msg: `Backup wil be stored at ${BUCKET}/${KEY} in ${AWS_REGION}` });
 
   const MIGRATOR_PATH = GetMigratorPath();
   const DEBUG = process.env.DEBUG == "true" ? true : false;
 
-  console.log("Checking presents of kine endpoint and migrator binary ...");
+  log({ level: logLevel.Info, msg: "Checking presents of kine endpoint and migrator binary ..." });
   if (ErrorIfNotExist(KINE_ENDPOINT, `Kine endpoint ${KINE_ENDPOINT} can not be found.`)) {
-    console.log(`   Kine endpoint found at ${KINE_ENDPOINT} => unix://${KINE_ENDPOINT}`);
+    log({ level: logLevel.Debug, msg: `Kine endpoint found at ${KINE_ENDPOINT} => unix://${KINE_ENDPOINT}` });
   }
   if (ErrorIfNotExist(MIGRATOR_PATH, `Migrator could not be found at ${MIGRATOR_PATH}.`)) {
-    console.log(`   Migrator binary found at ${MIGRATOR_PATH}`);
+    log({ level: logLevel.Info, msg: `Migrator binary found at ${MIGRATOR_PATH}` });
   }
 
   const tmpArchive = GetTempArchiveFilePath(GetFileName(KEY));
-  console.log(`Backup tarball file path ${tmpArchive}`);
+  log({ level: logLevel.Debug, msg: `Backup tarball file path ${tmpArchive}` });
 
   const tmpdir = GetBackupDirectoryPath(GetFileName(KEY, ".tar.gz"));
-  console.log(`Backup dir will be at ${tmpdir}`);
+  log({ level: logLevel.Debug, msg: `Backup dir will be at ${tmpdir}` });
 
   const dataToClean = [tmpdir, tmpArchive];
 
@@ -180,15 +180,14 @@ async function main() {
 
   if (DEBUG) {
     cmd = `${cmd} --debug`;
-    console.log(`Backup command: ${cmd}`);
+    log({ level: logLevel.Debug, msg: `Backup command: ${cmd}` });
   }
 
   try {
-    console.log("Starting backup ...");
+    log({ level: logLevel.Debug, msg: "Starting backup" });
     execSync(cmd, { stdio: "inherit" });
   } catch (err) {
-    console.log("Backup failed ...");
-    console.log(`Error:\n ${err}`);
+    log({ level: logLevel.Fatal, msg: `Backup failed with error: ${err}` });
     await Cleanup(dataToClean);
   }
 
@@ -211,6 +210,6 @@ main()
     process.exit(0);
   })
   .catch((err) => {
-    console.log(err);
+    log({ level: logLevel.Fatal, msg: `Main failed with error: ${err}` });
     process.exit(1);
   });

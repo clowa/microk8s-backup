@@ -7,6 +7,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { ReadStream } from "fs";
 import { createS3MultipartUpload } from "./create_s3_multipart_upload";
+import { log, logLevel } from "./logger";
 import { uploadPart } from "./upload_part";
 
 export async function uploadMultiPartFromStream(client: S3Client, file: ReadStream, config: CreateMultipartUploadCommandInput): Promise<void> {
@@ -29,7 +30,7 @@ export async function uploadMultiPartFromStream(client: S3Client, file: ReadStre
     });
 
     file.on("end", () => {
-      console.info("End of read stream.");
+      log({ level: logLevel.Debug, msg: "End of read stream." });
     });
 
     file.on("data", async (chunk: Buffer) => {
@@ -61,15 +62,22 @@ export async function uploadMultiPartFromStream(client: S3Client, file: ReadStre
           // Resume stream.
           file.resume();
         } catch (err) {
-          console.log(`Error uploading part ${partNumber}`);
-          console.log(`Error: ${err}`);
+          log(
+            {
+              level: logLevel.Fatal,
+              msg: `An error occurred while uploading a part with error: ${err}`,
+            },
+            {
+              partNumber: partNumber,
+            }
+          );
           reject(err);
         }
       }
     });
 
     file.on("close", async () => {
-      console.info("Closing read stream.");
+      log({ level: logLevel.Debug, msg: "Closing read stream." });
       if (chunkAccumulator) {
         try {
           // Upload the last chunk
@@ -86,8 +94,15 @@ export async function uploadMultiPartFromStream(client: S3Client, file: ReadStre
           chunkAccumulator = null;
           resolve(uploadedParts);
         } catch (err) {
-          console.log(`Error uploading part ${partNumber}`);
-          console.log(`Error: ${err}`);
+          log(
+            {
+              level: logLevel.Fatal,
+              msg: `An error occurred while uploading a part with error: ${err}`,
+            },
+            {
+              partNumber: partNumber,
+            }
+          );
           reject(err);
         }
       }
@@ -96,9 +111,16 @@ export async function uploadMultiPartFromStream(client: S3Client, file: ReadStre
 
   const uploadedParts = await uploadPartsPromise;
 
-  console.info(`All parts have been upload. Completing multipart upload. Parts: ${uploadedParts.length} `);
+  log(
+    {
+      level: logLevel.Info,
+      msg: "All parts have been upload. Completing multipart upload.",
+    },
+    {
+      partCount: uploadedParts.length,
+    }
+  );
 
-  console.log("Completing upload...");
   const completeData = await client.send(
     new CompleteMultipartUploadCommand({
       Bucket: Bucket,
@@ -109,5 +131,14 @@ export async function uploadMultiPartFromStream(client: S3Client, file: ReadStre
       },
     })
   );
-  console.log("Upload complete: ", completeData.Key, "\n");
+  log(
+    {
+      level: logLevel.Info,
+      msg: "Multipart upload completed successfully.",
+    },
+    {
+      Key: completeData.Key,
+      UploadId: UploadId,
+    }
+  );
 }

@@ -1,4 +1,5 @@
 import { CreateMultipartUploadCommand, CreateMultipartUploadCommandInput, CreateMultipartUploadCommandOutput, S3Client } from "@aws-sdk/client-s3";
+import { log, logLevel } from "./logger";
 
 export async function createS3MultipartUpload(
   client: S3Client,
@@ -6,6 +7,16 @@ export async function createS3MultipartUpload(
 ): Promise<CreateMultipartUploadCommandOutput> {
   const response = await client.send(new CreateMultipartUploadCommand(config));
 
-  console.log(`Upload initiated:\n\tKey:\t\t${response.Key}\n\tUpload ID:\t${response.UploadId}\n\tEncryption:\t${response.ServerSideEncryption}`);
+  log(
+    {
+      level: logLevel.Info,
+      msg: "Upload initiated",
+    },
+    {
+      UploadId: response.UploadId,
+      Key: response.Key,
+      ServerSideEncryption: response.ServerSideEncryption,
+    }
+  );
   return response;
 }
