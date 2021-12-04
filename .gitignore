@@ -1,0 +1,11 @@
+# ignore ts / js directories
+**build/
+**node_modules/
+
+# ignore local development fileStream
+*.bak
+*.old
+*.del
+
+# ignore macOS shit
+*DS_Store

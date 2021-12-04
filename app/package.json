@@ -1,0 +1,30 @@
+{
+  "name": "microk8s-backup",
+  "version": "0.0.1",
+  "description": "Tool to backup dqlite database of an microk8s ha-cluster",
+  "main": "app.js",
+  "repository": "https://github.com/clowa/docker-microk8s-backup",
+  "author": "Cedric Ahlers",
+  "license": "MIT",
+  "scripts": {
+    "dev": "ts-node src/app.ts",
+    "start": "ts-node build/app.js",
+    "build": "tsc -p ."
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.42.0",
+    "child_process": "^1.0.2",
+    "rimraf": "^3.0.2",
+    "tar": "^6.1.11"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.10",
+    "@types/rimraf": "^3.0.2",
+    "@types/tar": "^6.1.1",
+    "@typescript-eslint/eslint-plugin": "^5.4.0",
+    "@typescript-eslint/parser": "^5.4.0",
+    "eslint": "^8.3.0",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.2"
+  }
+}
