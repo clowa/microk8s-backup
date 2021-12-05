@@ -3,7 +3,8 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import tar from "tar";
-import { execSync } from "child_process";
+import { promisify } from "util";
+import { exec } from "child_process";
 import { uploadMultiPartFromStream } from "./lib/upload_multipart_from_stream";
 import { Cleanup } from "./lib/cleanup";
 import { log, logLevel } from "./lib/logger";
@@ -185,7 +186,12 @@ async function main() {
 
   try {
     log({ level: logLevel.Debug, msg: "Starting backup" });
-    execSync(cmd, { stdio: "inherit" });
+
+    const execAsync = promisify(exec);
+
+    const output = await execAsync(cmd);
+    console.log(`Stdout:\n${output.stdout}`);
+    console.log(`Stderr:\n${output.stderr}`);
   } catch (err) {
     log({ level: logLevel.Fatal, msg: `Backup failed with error: ${err}` });
     await Cleanup(dataToClean);
