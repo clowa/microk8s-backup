@@ -28,7 +28,6 @@ export async function uploadPart(
       }
     );
   } catch (err) {
-    // TODO: Check for error type.
     // TODO: Add pause
     log({ level: logLevel.Fatal, msg: `Upload of part ${partNumber} failed with error ${err}` });
 

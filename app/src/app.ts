@@ -2,12 +2,13 @@ import { S3Client, CreateMultipartUploadCommandInput } from "@aws-sdk/client-s3"
 import fs from "fs";
 import path from "path";
 import os from "os";
-import tar from "tar";
-import { promisify } from "util";
-import { exec } from "child_process";
+import { create as tarCreate } from "tar";
+import { spawnSync } from "child_process";
 import { uploadMultiPartFromStream } from "./lib/upload_multipart_from_stream";
 import { Cleanup } from "./lib/cleanup";
-import { log, logLevel } from "./lib/logger";
+import { log, logLevel, parseGoMigratorLog } from "./lib/logger";
+import { createInterface } from "readline";
+import { PassThrough } from "stream";
 
 function GetMissingEnvVars(envs: string[]): string[] {
   const missing = [];
@@ -114,16 +115,14 @@ async function CreateTarGzFromFolder(destination: string, directory: string): Pr
       // Example: /tmp/folder/file -> folder/file
       const workingDir = path.resolve(directory, "..");
       const targetDir = path.relative(workingDir, directory);
-      tar
-        .create(
-          {
-            gzip: true,
-            cwd: workingDir,
-            file: destination,
-          },
-          [targetDir]
-        )
-        .then((value) => resolve(value));
+      tarCreate(
+        {
+          gzip: true,
+          cwd: workingDir,
+          file: destination,
+        },
+        [targetDir]
+      ).then((value) => resolve(value));
     } catch (err) {
       reject(err);
     }
@@ -177,21 +176,22 @@ async function main() {
 
   const dataToClean = [tmpdir, tmpArchive];
 
-  let cmd = `${MIGRATOR_PATH} --endpoint unix://${KINE_ENDPOINT} --mode backup-dqlite --db-dir ${tmpdir}`;
+  const args = ["--endpoint", `unix://${KINE_ENDPOINT}`, "--mode", "backup-dqlite", "--db-dir", tmpdir];
 
   if (DEBUG) {
-    cmd = `${cmd} --debug`;
-    log({ level: logLevel.Debug, msg: `Backup command: ${cmd}` });
+    args.push("--debug");
+    log({ level: logLevel.Debug, msg: `Backup command: ${MIGRATOR_PATH} ${args}` });
   }
 
   try {
     log({ level: logLevel.Debug, msg: "Starting backup" });
 
-    const execAsync = promisify(exec);
-
-    const output = await execAsync(cmd);
-    console.log(`Stdout:\n${output.stdout}`);
-    console.log(`Stderr:\n${output.stderr}`);
+    // Start CMD and read output line by line from buffer.
+    // See: https://stackoverflow.com/questions/36896841/read-strings-line-by-line-from-buffer-instance-in-node-js-module
+    const cmd = spawnSync(MIGRATOR_PATH, args);
+    const bufferStream = new PassThrough();
+    bufferStream.end(cmd.stderr); // For some reason go-migrator decided to write to stdout instead of stderr.
+    parseGoMigratorLog(createInterface({ input: bufferStream }));
   } catch (err) {
     log({ level: logLevel.Fatal, msg: `Backup failed with error: ${err}` });
     await Cleanup(dataToClean);
