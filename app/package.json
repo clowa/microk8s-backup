@@ -1,6 +1,5 @@
 {
   "name": "microk8s-backup",
-
   "version": "0.0.2",
   "description": "Tool to backup dqlite database of an microk8s ha-cluster to AWS S3.",
   "main": "app.js",

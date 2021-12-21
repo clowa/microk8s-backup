@@ -1,0 +1,145 @@
+---
+kind: pipeline
+type: kubernetes
+name: docker build
+
+platform:
+  os: linux
+
+trigger:
+  branch:
+    - master
+
+volumes:
+  - name: docker
+    temp: {}
+
+services:
+  - name: docker
+    image: docker:20.10.11-dind
+    privileged: true
+    ports:
+      - 2375
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    volumes:
+      - name: docker
+        path: /var/lib/docker
+    resources:
+      requests:
+        cpu: 2
+        memory: 512Mi
+      limits:
+        memory: 2Gi
+    commands:
+      - "dockerd-entrypoint.sh --mtu=1440"
+
+steps:
+  - name: docker-healthcheck
+    image: docker:20.10.11
+    environment:
+      DOCKER_HOST: "tcp://127.0.0.1:2375"
+      DOCKER_TLS_CERTDIR: ""
+    commands:
+      - |
+        SLEEP_DURATION=5
+        MAX_ATTEMPTS=5
+        ATTEMPT_NUM=0
+        until docker info > /dev/null 2>&1
+        do
+          ATTEMPT_STR="$ATTEMPT_NUM/$MAX_ATTEMPTS"
+          if [[ "$ATTEMPT_NUM" == "$MAX_ATTEMPTS" ]] ;
+          then
+            echo "Attempt $ATTEMPT_STR failed. Giving up."
+            exit 1
+          else
+            echo "Docker does not seem to be running."
+            echo "Attempt $ATTEMPT_STR failed. Retrying in $SLEEP_DURATION seconds..."
+            ATTEMPT_NUM=$((ATTEMPT_NUM+1))
+            sleep "$SLEEP_DURATION"
+          fi
+        done
+      - docker version
+
+  - name: install-qemu
+    image: docker:20.10.11
+    environment:
+      DOCKER_HOST: "tcp://127.0.0.1:2375"
+      DOCKER_TLS_CERTDIR: ""
+    commands:
+      - docker run --privileged --rm tonistiigi/binfmt --install all
+
+  - name: docker-build
+    image: crazymax/docker
+    environment:
+      DOCKER_HOST: "tcp://127.0.0.1:2375"
+      DOCKER_TLS_CERTDIR: ""
+      DOCKER_HUB_USERNAME:
+        from_secret: docker_hub_username
+      DOCKER_HUB_PASSWORD:
+        from_secret: docker_hub_password
+      DOCKER_IMAGE: clowa/microk8s-backup
+      PLATFORMS: linux/amd64,linux/arm64/v8,linux/arm/v7
+    resources:
+      requests:
+        cpu: 0.5
+        memory: 64Mi
+    commands:
+      - docker buildx create --use
+      - apk add --quiet --no-cache --upgrade jq curl
+      - echo "$DOCKER_HUB_PASSWORD" | docker login --username "$DOCKER_HUB_USERNAME" --password-stdin
+      - ./scripts/buildx.sh -s || exit 1
+
+  - name: notification
+    image: appleboy/drone-telegram
+    settings:
+      to:
+        from_secret: telegram_user_id
+      token:
+        from_secret: telegram_api_token
+      format: markdown
+      message: >
+        {{#success build.status}}
+        ✅ Image build #{{build.number}} of `{{repo.name}}` succeeded.
+        ⏱ Took: {{since build.started}}
+        🌐 {{ build.link }}
+        {{else}}
+        ❌ Image build #{{build.number}} of `{{repo.name}}` failed.
+        ⏱ Took: {{since build.started}}
+        🌐 {{ build.link }}
+        {{/success}}
+    when:
+      status: [success, failure]
+
+---
+kind: secret
+name: docker_hub_username
+get:
+  path: docker-hub
+  name: username
+
+---
+kind: secret
+name: docker_hub_password
+get:
+  path: docker-hub
+  name: password
+
+---
+kind: secret
+name: telegram_user_id
+get:
+  path: drone-pipeline-telegram-secret
+  name: telegram-chatID
+
+---
+kind: secret
+name: telegram_api_token
+get:
+  path: drone-pipeline-telegram-secret
+  name: telegram-token
+---
+kind: signature
+hmac: bdf5a2927f3c7d9cde4d8412859810932a09814ca1875d8b54345bb739a099b7
+
+...
