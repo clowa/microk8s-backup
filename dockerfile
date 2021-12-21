@@ -42,7 +42,7 @@ COPY ./app/package*.json .
 COPY ./app/tsconfig.json .
 COPY ./app/yarn.lock .
 # Install all Packages
-RUN yarn install --silent --non-interactive
+RUN yarn install --silent --non-interactive --network-timeout 1000000
 # Copy all other source code to work directory
 COPY ./app/src ./src
 # ENV NODE_PATH=./app/build
@@ -63,7 +63,7 @@ RUN apk --quiet --update-cache upgrade
 # ENV NODE_ENV=dev 
 WORKDIR /usr/src/app
 COPY ./app/package.json .
-RUN yarn install --production --silent --non-interactive
+RUN yarn install --production --silent --non-interactive --network-timeout 1000000
 COPY --from=ts-build [ "/usr/src/app/build", "./build" ]
 
 # Switch to user node
