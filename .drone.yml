@@ -79,7 +79,8 @@ steps:
       DOCKER_HUB_PASSWORD:
         from_secret: docker_hub_password
       DOCKER_IMAGE: clowa/microk8s-backup
-      PLATFORMS: linux/amd64,linux/arm64/v8,linux/arm/v7
+      # PLATFORMS: linux/amd64,linux/arm64/v8,linux/arm/v7
+      PLATFORMS: linux/arm64/v8,linux/arm/v7
     resources:
       requests:
         cpu: 0.5
@@ -140,6 +141,6 @@ get:
   name: telegram-token
 ---
 kind: signature
-hmac: bdf5a2927f3c7d9cde4d8412859810932a09814ca1875d8b54345bb739a099b7
+hmac: 927eb257258dfa081a694c5ca3a0c98273d37f0ce4f7766f5fa046b6939d4177
 
 ...
