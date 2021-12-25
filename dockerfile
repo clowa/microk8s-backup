@@ -38,14 +38,11 @@ FROM --platform=$BUILDPLATFORM node:lts-alpine3.14 as ts-build
 # Create Directory for the Container
 WORKDIR /usr/src/app
 # Copy files with dependencies and config to working directory
-COPY ./app/package*.json .
-COPY ./app/tsconfig.json .
-COPY ./app/yarn.lock .
+COPY [ "./app/package*.json", "./app/tsconfig.json", "./app/yarn.lock", "./" ]
 # Install all Packages
 RUN yarn install --silent --non-interactive --network-timeout 1000000
 # Copy all other source code to work directory
 COPY ./app/src ./src
-# ENV NODE_PATH=./app/build
 # Transpile TypeScript
 RUN yarn run build
 
@@ -60,7 +57,7 @@ VOLUME /kine.sock
 # Update OS
 RUN apk --quiet --update-cache upgrade
 
-# ENV NODE_ENV=dev 
+ENV NODE_ENV=production 
 WORKDIR /usr/src/app
 COPY ./app/package.json .
 RUN yarn install --production --silent --non-interactive --network-timeout 1000000
