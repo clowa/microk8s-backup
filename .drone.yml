@@ -28,9 +28,10 @@ services:
         path: /var/lib/docker
     resources:
       requests:
-        cpu: 2
-        memory: 512Mi
+        cpu: 1500
+        memory: 1Gi
       limits:
+        cpu: 1500
         memory: 2Gi
     commands:
       - "dockerd-entrypoint.sh --mtu=1440"
@@ -142,6 +143,6 @@ get:
   name: telegram-token
 ---
 kind: signature
-hmac: c455001268b70f4d8496d5268d004e9981783fb6444a877751c7a88c24cb07e8
+hmac: 1d30d8c691ad6457bb6ba8ae18bfe7c49f13a91a9b4346005fddb11c87b64999
 
 ...
