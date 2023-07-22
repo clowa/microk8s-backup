@@ -74,6 +74,6 @@ jobs:
             🔧 Build status:  ${{ steps.docker_build.outcome }}
 
             📚 Repository: [ ${{ github.repository }} ](https://github.com/${{ github.repository }})
-            📦 Image digest: ${{ steps.docker_build.outputs.digest }}
+            📦 Image digest: ```${{ steps.docker_build.outputs.digest }}```
 
             🐳 See new image on [Docker hub](https://hub.docker.com/r/${{ env.IMAGE_NAME }}/tags)
