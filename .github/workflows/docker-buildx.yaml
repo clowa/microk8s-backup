@@ -1,4 +1,4 @@
-name: Build Docker Image
+name: Build docker images
 
 on:
   push:
@@ -12,7 +12,7 @@ env:
   IMAGE_NAME: ${{ vars.DOCKER_USERNAME }}/${{ github.event.repository.name }}
 
 jobs:
-  build:
+  docker-buildx:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -59,9 +59,6 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          #! Remove cache-* lines in case this is a private image repository
-          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
 
       - name: Send telegram notification
         if: github.ref == 'refs/heads/main'

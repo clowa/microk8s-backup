@@ -1,4 +1,4 @@
-[![Build Status](https://ci.k8s.clowa.de/api/badges/clowa/microk8s-backup/status.svg)](https://ci.k8s.clowa.de/clowa/microk8s-backup)
+[![Build Docker Image](https://github.com/clowa/microk8s-backup/actions/workflows/docker-buildx.yaml/badge.svg)](https://github.com/clowa/microk8s-backup/actions/workflows/docker-buildx.yaml)
 
 # Overview
 
