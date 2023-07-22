@@ -1,9 +1,12 @@
 # This Dockerfile ...
 
+ARG NODE_VERSION=3.18
+ARG GO_VERSION=1.20
+
 ################################
 ## Build golang application
 ################################
-FROM --platform=$BUILDPLATFORM golang:1.13-alpine as go-build
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine as go-build
 
 ARG BUILDPLATFORM
 ARG TARGETOS
@@ -33,7 +36,7 @@ RUN cp migrator /bin/
 ################################
 ## Building node.js app
 ################################
-FROM --platform=$BUILDPLATFORM node:lts-alpine3.14 as ts-build
+FROM --platform=$BUILDPLATFORM node:lts-alpine${NODE_VERSION} as ts-build
 
 # Create Directory for the Container
 WORKDIR /app
@@ -49,7 +52,7 @@ RUN yarn run build
 ################################
 ## Final image
 ################################
-FROM node:lts-alpine3.14 as final
+FROM node:lts-alpine${NODE_VERSION} as final
 #LABEL maintainer="My Company Team <email@example.org>"
 # Mount kine socket to container
 VOLUME /kine.sock
