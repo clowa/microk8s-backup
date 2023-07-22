@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly" # on the first of every month
+      time: "18:00"
+      timezone: "Europe/Berlin"
+    assignees:
+      - clowa
+
+  #########################################
+  # Application
+  - package-ecosystem: "npm"
+    directory: "/app"
+    schedule:
+      interval: "monthly"
+      day: "friday"
+      time: "18:00"
+      timezone: "Europe/Berlin"
+    assignees:
+      - clowa
