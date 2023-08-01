@@ -1094,10 +1094,10 @@
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.9.tgz#97edc9037ea0c38585320b28964dde3b39e4660d"
   integrity sha512-qcUXuemtEu+E5wZSJHNxUXeCZhAfXKQ41D+duX+VYPde7xyEVZci+/oXKJL13tnRs9lR2pr4fod59GT6/X1/yQ==
 
-"@types/logfmt@^1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@types/logfmt/-/logfmt-1.2.2.tgz#80b0b824199b2bb29f9667d016b0ddbe469b04e1"
-  integrity sha512-D67mkEUeXTKStrNPuoO18ONSqbwFcycFhQLDgHmTcU3bLBM/oUVHrruz5t70FDZEQNkMgALqMKfEdGh1FLzV7A==
+"@types/logfmt@^1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@types/logfmt/-/logfmt-1.2.3.tgz#0012c5b5d585f2752ef3946fe270200af9a06680"
+  integrity sha512-j4jI1nucPLMecs/KWlI5ZpmHb341mxFEC88NUs5fRSbZ0HRb5ExepbAXLKd8MLmC3gMdi6SplZuzwwPIOYxYnw==
   dependencies:
     "@types/node" "*"
 
