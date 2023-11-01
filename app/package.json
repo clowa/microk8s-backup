@@ -18,7 +18,7 @@
     "tar": "^6.1.15"
   },
   "devDependencies": {
-    "@types/logfmt": "^1.2.4",
+    "@types/logfmt": "^1.2.5",
     "@types/node": "^20.8.5",
     "@types/rimraf": "^3.0.2",
     "@types/tar": "^6.1.5",
