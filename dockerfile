@@ -1,6 +1,6 @@
 # This Dockerfile ...
 
-ARG NODE_VERSION=3.18
+ARG ALPINE_VERSION=3.19
 ARG GO_VERSION=1.20
 
 ################################
@@ -36,7 +36,7 @@ RUN cp migrator /bin/
 ################################
 ## Building node.js app
 ################################
-FROM --platform=$BUILDPLATFORM node:lts-alpine${NODE_VERSION} as ts-build
+FROM --platform=$BUILDPLATFORM node:lts-alpine${ALPINE_VERSION} as ts-build
 
 # Create Directory for the Container
 WORKDIR /app
@@ -52,7 +52,7 @@ RUN yarn run build
 ################################
 ## Final image
 ################################
-FROM node:lts-alpine${NODE_VERSION} as final
+FROM node:lts-alpine${ALPINE_VERSION} as final
 #LABEL maintainer="My Company Team <email@example.org>"
 # Mount kine socket to container
 VOLUME /kine.sock
