@@ -52,6 +52,8 @@ jobs:
         with:
           context: .
           file: ./dockerfile
+          build-args: |
+            NODE_VERSION=18
           platforms: |
             linux/amd64
             linux/arm64
